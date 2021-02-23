@@ -7,6 +7,11 @@
     id: "{{ item }}"
   with_items:
     - 7BF576066ADA65728FC7E70A8C47BE8E75BCA694
+  when: ansible_distribution_release != "focal"
+
+- name: debug add additional repos
+  debug:
+    msg: 'deb http://ppa.launchpad.net/certbot/certbot/ubuntu {{ ansible_distribution_release }} main'
 
 - name: add additional repos
   apt_repository:
@@ -14,14 +19,29 @@
     validate_certs: true
     update_cache: true
     state: present
+  when: ansible_distribution_release != "focal"
+  # For focal the oficially documentation show ppa as deprecated
+  # https://certbot.eff.org/docs/install.html#operating-system-packages
+  # or output from command
+  # # apt-add-repository -r ppa:certbot/certbot
+  # The PPA has been DEPRECATED.
 
 - name: apt dist-upgrade
   apt:
     upgrade: dist
     autoremove: true
+  when: ansible_distribution_release != "focal"
 
 - name: install python-certbot-nginx packages
   apt:
     name: python-certbot-nginx
     autoremove: true
     state: latest
+  when: ansible_distribution_release != "focal"
+
+- name: install python-certbot-nginx packages (ab focal / python3)
+  apt:
+    name: python3-certbot-nginx
+    autoremove: true
+    state: latest
+  when: ansible_distribution_release == "focal"
